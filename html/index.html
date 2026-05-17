@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PB_SBC01_H3 路由器管理</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 登录检查遮罩 -->
+    <div id="auth-overlay" style="display: none;">
+        <div class="auth-loading">
+            <div class="spinner"></div>
+            <p>验证登录状态...</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>🌐 PB_SBC01_H3 路由器管理</h1>
+                <p class="subtitle">全志H3开发板 | 嵌入式Linux应用</p>
+            </div>
+            <div class="user-info" id="user-info" style="display: none;">
+            <span>👤 admin</span>
+            <button class="logout-btn" onclick="logout()">🔓 注销</button>
+            <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </div>
+        </header>
+
+        <nav>
+            <ul class="nav-menu">
+                <li><a href="#" class="active" onclick="showSection('system')">📊 系统状态</a></li>
+                <li><a href="#" onclick="showSection('network')">📈 流量监控</a></li>
+                <li><a href="#" onclick="showSection('wifi')">📶 WiFi客户端</a></li>
+                <li><a href="#" onclick="showSection('routing')">🔀 高级路由</a></li>
+                <li><a href="#" onclick="showSection('dmz')">🛡️ DMZ主机</a></li>
+                <li><a href="#" onclick="showSection('vpn')">🔐 VPN远程访问</a></li>
+                <li><a href="#" onclick="showSection('monitor')">📠 监控告警</a></li>
+                <li><a href="#" onclick="showSection('tasks')">⏰ 定时任务</a></li>
+                <li><a href="#" onclick="showSection('traffic')">📊 流量统计</a></li>
+                <li><a href="#" onclick="showSection('quota')">📦 流量配额</a></li>
+                <li><a href="#" onclick="showSection('firewall')">🛡️ 防火墙</a></li>
+                <li><a href="#" onclick="showSection('ids')">🔍 IDS入侵检测</a></li>
+                <li><a href="#" onclick="showSection('users')">👥 用户管理</a></li>
+                <li><a href="#" onclick="showSection('logs')">📋 系统日志</a></li>
+                <li><a href="#" onclick="showSection('operations')">📝 操作日志</a></li>
+                <li><a href="#" onclick="showSection('settings')">⚙️ 路由器设置</a></li>
+                <li><a href="#" onclick="showSection('about')">ℹ️ 关于</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <!-- 系统状态 -->
+            <section id="system" class="section active">
+                <h2>📊 系统状态</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">💻</div>
+                        <div class="stat-info">
+                            <h3>CPU负载</h3>
+                            <p class="stat-value" id="cpu-load">--</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🧠</div>
+                        <div class="stat-info">
+                            <h3>内存使用</h3>
+                            <p class="stat-value" id="memory-usage">--</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-info">
+                            <h3>运行时间</h3>
+                            <p class="stat-value" id="uptime">--</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🌡️</div>
+                        <div class="stat-info">
+                            <h3>CPU温度</h3>
+                            <p class="stat-value" id="cpu-temp">--</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="system-info">
+                    <h3>📋 系统信息</h3>
+                    <table class="info-table">
+                        <tr><td>主机名</td><td id="hostname">--</td></tr>
+                        <tr><td>操作系统</td><td id="os-info">--</td></tr>
+                        <tr><td>内核版本</td><td id="kernel">--</td></tr>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 流量监控 -->
+            <section id="network" class="section">
+                <h2>📈 流量监控</h2>
+                <div class="chart-controls">
+                    <button class="btn-primary" onclick="initChart()">刷新图表</button>
+                    <select id="chart-mode" onchange="changeChartMode()">
+                        <option value="all">全部</option>
+                        <option value="wan">仅WAN</option>
+                        <option value="wifi">仅WiFi</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trafficChart"></canvas>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">⬇️</div>
+                        <div class="stat-info">
+                            <h3>WAN接收</h3>
+                            <p class="stat-value" id="wan-rx">--</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⬆️</div>
+                        <div class="stat-info">
+                            <h3>WAN发送</h3>
+                            <p class="stat-value" id="wan-tx">--</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📶</div>
+                        <div class="stat-info">
+                            <h3>WiFi接收</h3>
+                            <p class="stat-value" id="wifi-rx">--</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📡</div>
+                        <div class="stat-info">
+                            <h3>WiFi发送</h3>
+                            <p class="stat-value" id="wifi-tx">--</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WiFi客户端 -->
+            <section id="wifi" class="section">
+                <h2>📶 WiFi客户端</h2>
+                <p class="info-text">查看当前连接到WiFi的设备列表。</p>
+                <button class="btn-primary" onclick="loadWiFiClients()">🔄 刷新列表</button>
+                <table class="data-table" id="wifi-clients-table">
+                    <thead>
+                        <tr>
+                            <th>IP地址</th>
+                            <th>MAC地址</th>
+                            <th>信号强度</th>
+                            <th>发送流量</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="wifi-clients-body">
+                        <tr><td colspan="5" class="text-center">加载中...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- 高级路由 -->
+            <section id="routing" class="section">
+                <h2>🔀 高级路由</h2>
+                <p class="info-text">配置端口转发和QoS带宽控制。</p>
+
+                <div class="settings-section">
+                    <h3>🔄 端口转发</h3>
+                    <button class="btn-primary" onclick="showPortForwardForm()">➕ 添加规则</button>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>协议</th>
+                                <th>外部端口</th>
+                                <th>内部IP</th>
+                                <th>内部端口</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="port-forward-body">
+                            <tr><td colspan="5" class="text-center">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="settings-section">
+                    <h3>⚡ QoS带宽控制</h3>
+                    <div class="form-group">
+                        <label>上行带宽 (Mbps):</label>
+                        <input type="number" id="qos-upstream" value="10" min="1" max="1000">
+                    </div>
+                    <div class="form-group">
+                        <label>下行带宽 (Mbps):</label>
+                        <input type="number" id="qos-downstream" value="50" min="1" max="1000">
+                    </div>
+                    <div class="form-group">
+                        <label>优先级:</label>
+                        <select id="qos-priority">
+                            <option value="high">高</option>
+                            <option value="medium" selected>中</option>
+                            <option value="low">低</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" onclick="saveQoSSettings()">💾 保存设置</button>
+                </div>
+
+                <div id="routing-message" class="message" style="display: none;"></div>
+            </section>
+
+            <!-- DMZ主机 -->
+            <section id="dmz" class="section">
+                <h2>🛡️ DMZ主机配置</h2>
+                <p class="info-text">将内网设备完全暴露给外网，用于服务器部署或特殊应用。</p>
+
+                <div class="settings-section">
+                    <h3>DMZ状态: <span id="dmz-status">--</span></h3>
+                    <div class="form-group">
+                        <label>启用DMZ:</label>
+                        <select id="dmz-enable">
+                            <option value="0">禁用</option>
+                            <option value="1">启用</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>DMZ主机IP:</label>
+                        <input type="text" id="dmz-ip" placeholder="例如: 192.168.4.10">
+                    </div>
+                    <button class="btn-primary" onclick="saveDMZSettings()">💾 保存设置</button>
+                    <p class="warning-text">⚠️ DMZ主机将完全暴露于外网，请谨慎使用！</p>
+                </div>
+
+                <div id="dmz-message" class="message" style="display: none;"></div>
+            </section>
+
+            <!-- VPN远程访问 -->
+            <section id="vpn" class="section">
+                <h2>🔐 VPN远程访问</h2>
+                <p class="info-text">通过WireGuard VPN远程访问内网。</p>
+
+                <div class="settings-section">
+                    <h3>VPN状态: <span id="vpn-status">--</span></h3>
+                    <div class="vpn-buttons">
+                        <button class="btn-success" onclick="startVPN()">▶️ 启动VPN</button>
+                        <button class="btn-danger" onclick="stopVPN()">⏹️ 停止VPN</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>服务器信息</h3>
+                    <table class="info-table">
+                        <tr><td>公钥</td><td id="vpn-public-key">--</td></tr>
+                        <tr><td>监听端口</td><td id="vpn-port">--</td></tr>
+                        <tr><td>VPN网段</td><td>10.0.0.0/24</td></tr>
+                    </table>
+                </div>
+
+                <div class="settings-section">
+                    <h3>➕ 添加客户端</h3>
+                    <div class="form-group">
+                        <label>客户端名称:</label>
+                        <input type="text" id="client-name" placeholder="例如: 手机">
+                    </div>
+                    <button class="btn-primary" onclick="generateVPNKey()">🔑 生成密钥</button>
+                    <div class="form-group">
+                        <label>私钥:</label>
+                        <input type="text" id="client-private-key" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>公钥:</label>
+                        <input type="text" id="client-public-key" readonly>
+                    </div>
+                    <button class="btn-primary" onclick="addVPNClient()">➕ 添加客户端</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📋 已连接的客户端</h3>
+                    <button class="btn-primary" onclick="loadVPNClients()">🔄 刷新</button>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>名称</th>
+                                <th>公钥</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vpn-clients-body">
+                            <tr><td colspan="3" class="text-center">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📝 客户端配置示例</h3>
+                    <pre class="config-example">[Interface]
+PrivateKey = <客户端私钥>
+Address = 10.0.0.2/24
+DNS = 8.8.8.8
+
+[Peer]
+PublicKey = <服务器公钥>
+Endpoint = <你的公网IP>:51820
+AllowedIPs = 0.0.0.0/0</pre>
+                </div>
+            </section>
+
+            <!-- 监控告警 -->
+            <section id="monitor" class="section">
+                <h2>📠 监控告警</h2>
+                <p class="info-text">实时监控设备状态，设置告警阈值。</p>
+
+                <div class="settings-section">
+                    <h3>📊 当前状态</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">💻</div>
+                            <div class="stat-info">
+                                <h3>CPU负载</h3>
+                                <p class="stat-value" id="monitor-cpu">--</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🧠</div>
+                            <div class="stat-info">
+                                <h3>内存使用</h3>
+                                <p class="stat-value" id="monitor-memory">--</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🌡️</div>
+                            <div class="stat-info">
+                                <h3>CPU温度</h3>
+                                <p class="stat-value" id="monitor-temp">--</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>⚙️ 告警阈值设置</h3>
+                    <div class="form-group">
+                        <label>CPU负载阈值 (%):</label>
+                        <input type="number" id="alert-cpu" value="80" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>内存使用阈值 (%):</label>
+                        <input type="number" id="alert-memory" value="90" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>温度阈值 (°C):</label>
+                        <input type="number" id="alert-temp" value="70" min="0" max="100">
+                    </div>
+                    <button class="btn-primary" onclick="saveAlertSettings()">💾 保存设置</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📋 告警日志</h3>
+                    <button class="btn-primary" onclick="loadAlertLog()">🔄 刷新</button>
+                    <pre id="alert-log-content">加载中...</pre>
+                </div>
+            </section>
+
+            <!-- 定时任务 -->
+            <section id="tasks" class="section">
+                <h2>⏰ 定时任务管理</h2>
+                <p class="info-text">管理路由器的定时任务，包括自动重启、配置备份和日志清理。</p>
+
+                <div class="settings-section">
+                    <h3>🔄 定时重启</h3>
+                    <p class="info-text">设置路由器自动重启时间（每天）</p>
+                    <div class="form-group">
+                        <label>重启时间:</label>
+                        <select id="reboot-hour">
+                            <option value="0">00:00</option>
+                            <option value="1">01:00</option>
+                            <option value="2">02:00</option>
+                            <option value="3">03:00</option>
+                            <option value="4">04:00</option>
+                            <option value="5">05:00</option>
+                            <option value="6">06:00</option>
+                            <option value="7">07:00</option>
+                            <option value="8">08:00</option>
+                            <option value="9">09:00</option>
+                            <option value="10">10:00</option>
+                            <option value="11">11:00</option>
+                            <option value="12">12:00</option>
+                            <option value="13">13:00</option>
+                            <option value="14">14:00</option>
+                            <option value="15">15:00</option>
+                            <option value="16">16:00</option>
+                            <option value="17">17:00</option>
+                            <option value="18">18:00</option>
+                            <option value="19">19:00</option>
+                            <option value="20">20:00</option>
+                            <option value="21">21:00</option>
+                            <option value="22">22:00</option>
+                            <option value="23">23:00</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn-primary" onclick="scheduleReboot()">设置定时重启</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📦 配置备份</h3>
+                    <p class="info-text">备份路由器配置文件到 /var/backups/router/</p>
+                    <div class="form-group">
+                        <button class="btn-primary" onclick="backupConfigs()">立即备份</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🗑️ 日志清理</h3>
+                    <p class="info-text">清空系统日志、认证日志和WiFi日志</p>
+                    <div class="form-group">
+                        <button class="btn-danger" onclick="cleanLogs()">清空日志</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📋 当前定时任务列表</h3>
+                    <button class="btn-primary" onclick="loadTasks()">刷新列表</button>
+                    <table class="data-table" id="tasks-table">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>任务内容</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasks-body">
+                            <tr><td colspan="3" class="text-center">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="tasks-message"></div>
+            </section>
+
+            <!-- 流量分析和可视化 -->
+            <section id="traffic" class="section">
+                <h2>📊 流量分析和可视化</h2>
+                <p class="info-text">实时监控网络流量，查看历史趋势和设备使用情况。</p>
+
+                <div class="settings-section">
+                    <h3>📈 实时流量监控</h3>
+                    <div class="chart-container">
+                        <div class="chart-wrapper">
+                            <h4>WAN接口 (eth0)</h4>
+                            <canvas id="wanChart" width="600" height="200"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <h4>WiFi接口 (wlan0)</h4>
+                            <canvas id="wlanChart" width="600" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="traffic-summary">
+                        <div class="summary-card">
+                            <span class="label">WAN入站</span>
+                            <span class="value" id="wan-rx">0 B/s</span>
+                        </div>
+                        <div class="summary-card">
+                            <span class="label">WAN出站</span>
+                            <span class="value" id="wan-tx">0 B/s</span>
+                        </div>
+                        <div class="summary-card">
+                            <span class="label">WiFi入站</span>
+                            <span class="value" id="wlan-rx">0 B/s</span>
+                        </div>
+                        <div class="summary-card">
+                            <span class="label">WiFi出站</span>
+                            <span class="value" id="wlan-tx">0 B/s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📊 设备流量排行</h3>
+                    <button class="btn-primary" onclick="loadTrafficStats()">刷新数据</button>
+                    <table class="data-table" id="traffic-table">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>IP地址</th>
+                                <th>MAC地址</th>
+                                <th>设备名称</th>
+                                <th>接收流量</th>
+                                <th>发送流量</th>
+                                <th>总流量</th>
+                                <th>当前速率</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="traffic-body">
+                            <tr><td colspan="9" class="text-center">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="settings-section">
+                    <h3>⚡ 设置限速</h3>
+                    <div class="form-group">
+                        <label>选择设备IP:</label>
+                        <select id="limit-ip">
+                            <option value="">请选择设备</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>限速值 (Mbps):</label>
+                        <select id="limit-speed">
+                            <option value="0">不限速</option>
+                            <option value="1">1 Mbps</option>
+                            <option value="2">2 Mbps</option>
+                            <option value="5">5 Mbps</option>
+                            <option value="10">10 Mbps</option>
+                            <option value="20">20 Mbps</option>
+                            <option value="50">50 Mbps</option>
+                            <option value="100">100 Mbps</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn-primary" onclick="applySpeedLimit()">应用限速</button>
+                    </div>
+                </div>
+
+                <div id="traffic-message"></div>
+            </section>
+
+            <!-- 流量配额管理 -->
+            <section id="quota" class="section">
+                <h2>📦 流量配额管理</h2>
+                <p class="info-text">设置设备流量配额，达到限制后自动断网或限速。</p>
+
+                <div class="settings-section">
+                    <h3>📊 配额统计概览</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="quota-total">0</div>
+                            <div class="stat-label">总规则数</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="quota-active">0</div>
+                            <div class="stat-label">启用规则</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="quota-exceeded">0</div>
+                            <div class="stat-label">已超限</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="quota-blocked">0</div>
+                            <div class="stat-label">已阻止</div>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="checkAllQuotas()">🔄 检查所有配额</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>➕ 添加流量配额</h3>
+                    <div class="form-group">
+                        <label>选择设备:</label>
+                        <select id="quota-device-select">
+                            <option value="">手动输入IP</option>
+                        </select>
+                        <input type="text" id="quota-ip" placeholder="例如: 192.168.1.100" style="margin-left: 10px;">
+                    </div>
+                    <div class="form-group">
+                        <label>设备名称:</label>
+                        <input type="text" id="quota-name" placeholder="例如: 我的手机">
+                    </div>
+                    <div class="form-group">
+                        <label>日流量配额 (GB):</label>
+                        <input type="number" id="quota-daily" value="0" min="0" step="0.1" placeholder="0表示不限制">
+                    </div>
+                    <div class="form-group">
+                        <label>月流量配额 (GB):</label>
+                        <input type="number" id="quota-monthly" value="0" min="0" step="0.1" placeholder="0表示不限制">
+                    </div>
+                    <div class="form-group">
+                        <label>超限后动作:</label>
+                        <select id="quota-action">
+                            <option value="1">断网 (DROP)</option>
+                            <option value="2">限速至256Kbps</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn-success" onclick="addQuotaRule()">➕ 添加配额规则</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📋 配额规则列表</h3>
+                    <button class="btn-primary" onclick="loadQuotaRules()">🔄 刷新列表</button>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>状态</th>
+                                <th>设备名称</th>
+                                <th>IP地址</th>
+                                <th>日配额</th>
+                                <th>日用量</th>
+                                <th>月配额</th>
+                                <th>月用量</th>
+                                <th>超限动作</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quota-rules-body">
+                            <tr><td colspan="9" class="text-center">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="quota-message" class="message-box"></div>
+            </section>
+
+            <!-- 防火墙规则管理 -->
+            <section id="firewall" class="section">
+                <h2>🛡️ 防火墙规则管理</h2>
+                <p class="info-text">配置网络防火墙规则，保护路由器安全。</p>
+
+                <div class="settings-section">
+                    <h3>⚡ 快速操作</h3>
+                    <div class="form-group">
+                        <button class="btn-success" onclick="applyFirewall()">✅ 应用防火墙规则</button>
+                        <button class="btn-warning" onclick="resetFirewall()">🔄 重置为默认</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📋 预设模板</h3>
+                    <p class="info-text">快速添加常用规则</p>
+                    <div class="form-group">
+                        <button class="btn-primary" onclick="addTemplate('allow_http')">🌐 允许HTTP/HTTPS</button>
+                        <button class="btn-primary" onclick="addTemplate('allow_ssh')">🔐 允许SSH</button>
+                        <button class="btn-primary" onclick="addTemplate('allow_dns')">🌍 允许DNS</button>
+                        <button class="btn-danger" onclick="addTemplate('block_ping')">🚫 禁止Ping</button>
+                        <button class="btn-primary" onclick="addTemplate('allow_rdp')">🖥️ 允许RDP</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>➕ 添加自定义规则</h3>
+                    <div class="form-group">
+                        <label>规则名称:</label>
+                        <input type="text" id="fw-name" placeholder="例如: 允许Web服务器">
+                    </div>
+                    <div class="form-group">
+                        <label>动作:</label>
+                        <select id="fw-action">
+                            <option value="ACCEPT">允许 (ACCEPT)</option>
+                            <option value="DROP">丢弃 (DROP)</option>
+                            <option value="REJECT">拒绝 (REJECT)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>方向:</label>
+                        <select id="fw-direction">
+                            <option value="INPUT">入站 (INPUT)</option>
+                            <option value="OUTPUT">出站 (OUTPUT)</option>
+                            <option value="FORWARD">转发 (FORWARD)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>协议:</label>
+                        <select id="fw-protocol">
+                            <option value="ALL">全部</option>
+                            <option value="TCP">TCP</option>
+                            <option value="UDP">UDP</option>
+                            <option value="ICMP">ICMP</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>源IP (可选):</label>
+                        <input type="text" id="fw-src-ip" placeholder="例如: 192.168.1.100 或留空">
+                    </div>
+                    <div class="form-group">
+                        <label>目标IP (可选):</label>
+                        <input type="text" id="fw-dst-ip" placeholder="例如: 10.0.0.1 或留空">
+                    </div>
+                    <div class="form-group">
+                        <label>源端口 (可选):</label>
+                        <input type="number" id="fw-src-port" placeholder="例如: 8080">
+                    </div>
+                    <div class="form-group">
+                        <label>目标端口 (可选):</label>
+                        <input type="number" id="fw-dst-port" placeholder="例如: 80">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn-primary" onclick="addFirewallRule()">➕ 添加规则</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📋 当前防火墙规则</h3>
+                    <button class="btn-primary" onclick="loadFirewallRules()">🔄 刷新</button>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>名称</th>
+                                <th>动作</th>
+                                <th>方向</th>
+                                <th>协议</th>
+                                <th>源IP</th>
+                                <th>目标IP</th>
+                                <th>端口</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="firewall-body">
+                            <tr><td colspan="10" class="text-center">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="firewall-message"></div>
+            </section>
+
+            <!-- IDS入侵检测 -->
+            <section id="ids" class="section">
+                <h2>🔍 IDS入侵检测系统</h2>
+                <p class="info-text">实时监控网络攻击行为，自动检测并阻止入侵尝试。</p>
+
+                <div class="settings-section">
+                    <h3>📊 安全状态概览</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card critical">
+                            <span class="stat-value" id="ids-critical">0</span>
+                            <span class="stat-label">严重告警</span>
+                        </div>
+                        <div class="stat-card high">
+                            <span class="stat-value" id="ids-high">0</span>
+                            <span class="stat-label">高危告警</span>
+                        </div>
+                        <div class="stat-card medium">
+                            <span class="stat-value" id="ids-medium">0</span>
+                            <span class="stat-label">中危告警</span>
+                        </div>
+                        <div class="stat-card low">
+                            <span class="stat-value" id="ids-low">0</span>
+                            <span class="stat-label">低危告警</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn-primary" onclick="runIdsDetection()">🔄 执行检测</button>
+                        <button class="btn-success" onclick="loadIdsStats()">📊 更新统计</button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🚨 最近告警记录</h3>
+                    <table class="data-table" id="ids-alerts-table">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>类型</th>
+                                <th>严重级别</th>
+                                <th>源IP</th>
+                                <th>目标</th>
+                                <th>协议</th>
+                                <th>描述</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ids-alerts-body">
+                            <tr><td colspan="9" class="text-center">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="settings-section">
+                    <h3>⚡ IP管理</h3>
+                    <div class="form-group">
+                        <label>手动阻止IP:</label>
+                        <input type="text" id="block-ip" placeholder="输入要阻止的IP地址">
+                        <button class="btn-danger" onclick="blockIp()">🔒 阻止IP</button>
+                    </div>
+                    <div class="form-group">
+                        <label>解除阻止IP:</label>
+                        <input type="text" id="unblock-ip" placeholder="输入要解除的IP地址">
+                        <button class="btn-success" onclick="unblockIp()">🔓 解除阻止</button>
+                    </div>
+                </div>
+
+                <div id="ids-message"></div>
+            </section>
+
+            <!-- 用户管理 -->
+            <section id="users" class="section">
+                <h2>👥 用户管理</h2>
+                <p class="info-text">管理Web管理界面的用户账号和权限。</p>
+
+                <div class="settings-section">
+                    <h3>➕ 添加新用户</h3>
+                    <div class="form-group">
+                        <label>用户名:</label>
+                        <input type="text" id="new-username" placeholder="请输入用户名">
+                    </div>
+                    <div class="form-group">
+                        <label>密码:</label>
+                        <input type="password" id="new-password" placeholder="请输入密码">
+                    </div>
+                    <div class="form-group">
+                        <label>权限级别:</label>
+                        <select id="new-user-role">
+                            <option value="user">普通用户</option>
+                            <option value="admin">管理员</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" onclick="addNewUser()">➕ 添加用户</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🔑 修改密码</h3>
+                    <div class="form-group">
+                        <label>用户名:</label>
+                        <input type="text" id="pwd-username" placeholder="请输入用户名">
+                    </div>
+                    <div class="form-group">
+                        <label>原密码:</label>
+                        <input type="password" id="old-password" placeholder="请输入原密码">
+                    </div>
+                    <div class="form-group">
+                        <label>新密码:</label>
+                        <input type="password" id="new-password-change" placeholder="请输入新密码">
+                    </div>
+                    <button class="btn-primary" onclick="changePassword()">🔑 修改密码</button>
+                </div>
+
+                <div id="user-message"></div>
+            </section>
+
+            <!-- 系统日志 -->
+            <section id="logs" class="section">
+                <h2>📋 系统日志</h2>
+                <p class="info-text">查看系统运行日志和认证日志。</p>
+
+                <div class="log-tabs">
+                    <button class="btn-primary" onclick="loadSystemLog()">📝 系统日志</button>
+                    <button class="btn-primary" onclick="loadWiFiLog()">📶 WiFi日志</button>
+                    <button class="btn-primary" onclick="loadAuthLog()">🔐 认证日志</button>
+                    <button class="btn-danger" onclick="clearLogs()">🗑️ 清空日志</button>
+                </div>
+                <pre id="log-content" class="log-content">加载中...</pre>
+            </section>
+
+            <!-- 操作日志 -->
+            <section id="operations" class="section">
+                <h2>📝 操作日志</h2>
+                <p class="info-text">记录所有用户的操作历史，方便审计和问题排查。</p>
+
+                <div class="settings-section">
+                    <div class="form-group">
+                        <label>过滤模块:</label>
+                        <select id="log-filter-module">
+                            <option value="">全部</option>
+                            <option value="系统">系统</option>
+                            <option value="网络">网络</option>
+                            <option value="WiFi">WiFi</option>
+                            <option value="VPN">VPN</option>
+                            <option value="防火墙">防火墙</option>
+                            <option value="IDS">IDS</option>
+                            <option value="用户">用户</option>
+                            <option value="配置">配置</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>显示条数:</label>
+                        <select id="log-limit">
+                            <option value="50">50条</option>
+                            <option value="100" selected>100条</option>
+                            <option value="200">200条</option>
+                            <option value="500">500条</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" onclick="loadOperationLogs()">🔄 刷新日志</button>
+                    <button class="btn-danger" onclick="clearOperationLogs()">🗑️ 清空日志</button>
+                </div>
+
+                <div class="settings-section">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>用户</th>
+                                <th>模块</th>
+                                <th>动作</th>
+                                <th>详情</th>
+                            </tr>
+                        </thead>
+                        <tbody id="operation-logs-body">
+                            <tr><td colspan="5" class="text-center">加载中...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 路由器设置 -->
+            <section id="settings" class="section">
+                <h2>⚙️ 路由器设置</h2>
+                <p class="info-text">配置路由器网络和系统参数。</p>
+
+                <div class="settings-section">
+                    <h3>🌐 网络设置</h3>
+                    <div class="form-group">
+                        <label>WAN模式:</label>
+                        <select id="wan-mode" onchange="toggleStaticFields()">
+                            <option value="dhcp">DHCP (自动获取)</option>
+                            <option value="static">静态IP</option>
+                        </select>
+                    </div>
+                    <div class="static-fields" style="display: none;">
+                        <div class="form-group">
+                            <label>IP地址:</label>
+                            <input type="text" id="static-ip" placeholder="192.168.10.100">
+                        </div>
+                        <div class="form-group">
+                            <label>子网掩码:</label>
+                            <input type="text" id="static-mask" placeholder="255.255.255.0">
+                        </div>
+                        <div class="form-group">
+                            <label>网关:</label>
+                            <input type="text" id="static-gateway" placeholder="192.168.10.1">
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="saveNetworkSettings()">💾 保存网络设置</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📶 WiFi设置</h3>
+                    <div class="form-group">
+                        <label>WiFi名称 (SSID):</label>
+                        <input type="text" id="wifi-ssid" placeholder="PB_SBC01_H3">
+                    </div>
+                    <div class="form-group">
+                        <label>WiFi密码:</label>
+                        <input type="password" id="wifi-password" placeholder="12345678">
+                    </div>
+                    <div class="form-group">
+                        <label>加密方式:</label>
+                        <select id="wifi-encryption">
+                            <option value="wpa2">WPA2-PSK</option>
+                            <option value="wpa3">WPA3-PSK</option>
+                            <option value="open">开放 (无密码)</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" onclick="saveWiFiSettings()">💾 保存WiFi设置</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>💻 系统设置</h3>
+                    <div class="form-group">
+                        <label>主机名:</label>
+                        <input type="text" id="system-hostname" placeholder="pbsbc01h3">
+                    </div>
+                    <button class="btn-primary" onclick="saveSystemSettings()">💾 保存系统设置</button>
+                    <button class="btn-danger" onclick="restartSystem()">🔄 重启路由器</button>
+                </div>
+
+                <div id="settings-message" class="message" style="display: none;"></div>
+            </section>
+
+            <!-- 关于 -->
+            <section id="about" class="section">
+                <h2>ℹ️ 关于</h2>
+                <div class="about-content">
+                    <h3>PB_SBC01_H3 路由器管理系统</h3>
+                    <p>基于全志H3开发板构建的WiFi路由器，配备功能完善的Web管理界面。</p>
+
+                    <h4>技术特性</h4>
+                    <ul>
+                        <li>🌐 双频WiFi支持 (2.4GHz)</li>
+                        <li>🔐 WPA3/WPA2加密</li>
+                        <li>📊 实时流量监控</li>
+                        <li>🛡️ 防火墙安全保护</li>
+                        <li>🔐 VPN远程访问</li>
+                        <li>📠 实时监控告警</li>
+                        <li>⏰ 定时任务自动化</li>
+                    </ul>
+
+                    <h4>开发信息</h4>
+                    <p>开发时间: 2026年5月</p>
+                    <p>技术栈: HTML5 + CSS3 + JavaScript + C语言CGI</p>
+                    <p>Web服务器: lighttpd</p>
+                    <p>路由器固件: OpenWrt/Debian</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 PB_SBC01_H3 路由器管理系统 | <a href="https://github.com" target="_blank">GitHub</a></p>
+        </footer>
+    </div>
+
+    <!-- 端口转发弹窗 -->
+    <div id="port-forward-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>添加端口转发规则</h3>
+            <div class="form-group">
+                <label>协议:</label>
+                <select id="pf-protocol">
+                    <option value="tcp">TCP</option>
+                    <option value="udp">UDP</option>
+                    <option value="both">TCP+UDP</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>外部端口:</label>
+                <input type="number" id="pf-external-port" placeholder="例如: 8080">
+            </div>
+            <div class="form-group">
+                <label>内部IP地址:</label>
+                <input type="text" id="pf-internal-ip" placeholder="例如: 192.168.4.10">
+            </div>
+            <div class="form-group">
+                <label>内部端口:</label>
+                <input type="number" id="pf-internal-port" placeholder="例如: 80">
+            </div>
+            <button class="btn-primary" onclick="addPortForward()">➕ 添加</button>
+        </div>
+    </div>
+
+    <script>
+        // 扩展 showSection 函数，加载操作日志
+        // 获取原 showSection 函数（如果有的话），或者定义一个
+        var originalShowSection = window.showSection;
+        
+        window.showSection = function(sectionId) {
+            if (originalShowSection) {
+                originalShowSection(sectionId);
+            } else {
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                var section = document.getElementById(sectionId);
+                if (section) section.classList.add('active');
+            }
+            
+            if (sectionId === 'operations') {
+                loadOperationLogs();
+            }
+        };
+        
+        // 页面加载后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 可以在这里添加其他初始化代码
+        });
+    </script>
+    <script src="main.js"></script>
+</body>
+</html>
